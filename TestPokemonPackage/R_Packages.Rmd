@@ -1,0 +1,167 @@
+---
+title: "R_packages"
+author: "Lauren Trichtinger"
+date: "2/2/2022"
+output: html_document
+---
+
+## Packages in R 
+
+Currently CRAN has 18,858 available packages for R. You can search by topic at http://lib.stat.cmu.edu/R/CRAN/
+
+##Why packages?
+
+Because they are useful.
+
+Allow you to analyze particular data sets, or do specific (or generic types of processing)
+
+Example: dataMaid
+
+```{r}
+#install.packages("dataMaid")
+library(dataMaid)
+library(ggplot2)
+```
+Note: make sure that you set your path to someplace useful (e.g., where you are storing notes for this class) in the last function. 
+
+```{r}
+makeDataReport(diamonds, file="/Users/farrahpl/Desktop/CS-347 Applied Data Science/week3/Diamonds.RMD") #diamonds is a dataset in ggplot2
+```
+
+## The insides of an R package 
+
+Top level of an R package: folder named after the package 
+   - common files:
+      - DESCRIPTION: metadata about the project -- you don't create this by hand, RStudio/ devtools will create the template for you
+      - NAMESPACE: defines the functions, classes, and methods that are imported into the name space. DO NOT WRITE THIS BY HAND
+      - NEWS: where you put updates about the package; track changes between versions
+      - CITATION: "Appropriate citations must me included in help pages and vignettes; this aspect of documentation is no different from any scientific endeavor" 
+   - subfolders:
+      - data -- stores your data: .rda, .csv, other formatted data
+      - inst -- store other stuff that's not part of the "real" package. EX: JSON source files, other information about where/when you got the data 
+      - R -- the folder that include your .R code 
+      - man -- contains documentation for the package; do not write by hand Roxygen2 to auto-generate these 
+      - vignettes -- where you put example markdown files for how to use your package
+      - tests -- where unit tests for packages go 
+      
+##Creating R packages
+
+First, install devtools:
+```{r}
+install.packages("devtools")
+```
+
+Then, create a new project:
+
+RStudio -- File -- new project -- new directory -- R package with devtools
+
+pick a directory, name your package ('PokemonPackage')
+
+NOTE: R packages can only have names, numbers, and can be spaces but I recommend against this-- no underscores or other special characters 
+
+RStudio will create the directory, and create the DESCRPTION and NAMESPACE files, as well as the R directory
+
+Open the DESCRIPTION file; do some editing (e.g., your name, description, title ). Note that leading whitespace sometimes matters here, so you want to be careful with it.
+
+Make a new folder in the package called 'data' go into the folder add the pokemon2.tsv file from 2u digital campus to the data directory.
+
+Set the data dir as the working directory (it's an option under "more" in the lower right quadrant).
+
+Run this code in the console:
+```{r}
+pokemon_data=read.csv("/Users/farrahpl/Desktop/CS-347 Applied Data Science/week3/pokemon2.tsv",sep="\t",stringsAsFactors = FALSE) #edit directory path
+save(pokemon_data,file="pokemon_data.rda")
+```
+
+RDA files are the standard way that R stores data in a binary format. 
+You can delete the tsv, or move it to the `inst` directory if you want to make one. 
+
+Go back up to your package directory and set that back as your working directory.
+
+Go to Build -- install and restart
+You shouldn't get any errors, but you should see this:
+```{r}
+library(TestPokemonPackage)
+```
+
+In the console, type this:
+```{r, echo=FALSE}
+data(pokemon_data)
+head(pokemon_data)
+```
+     
+You can see the data!
+
+## Creating functions 
+
+Download PokemonPackage.R from the 2u digital campus, put in the R directory for your package. Open the file, and we'll start to fill in the functions.
+
+Spend some time trying it out yourself!
+
+Once you have one function done (or just want to test one that you're working on),
+save the .R file, and build and restart the package again, then call the function from the console.
+
+```{r}
+#library(PokemonPackage)
+#pokeDex("Bulbasaur")
+```
+
+Did you get an error message? Of course you did! A function has to be documented before it can be run.
+
+##Documenting functions
+
+### Why do we need documentation?
+
+- Documentation is one of the most important aspects of a good package.
+- Without it, users won’t know how to use your package.
+- Documentation is also useful for future-you (so you remember what your functions were supposed to do), and for developers extending your package.
+
+Writing R documentation by hand is a pain, so we use Roxygen for generating  documentation
+
+How to use it:
+   - add Roxygen comments (each line starts with #' )
+   - Build the documentation
+   - Roxygen will also do all the namespace stuff for you, which is what allows you to run your functions
+
+Roxygen tags:
+ @param name description
+ @examples : Provide executable code to show how to use your function.
+ @return description : Describes the output from the function.
+ @importFrom:import selected functions, use this if you use any external packages (e.g. #'@importFrom mvtnorm pmvnorm where mvtnorm is the package and pmvnorm is the function we used) 
+ @export : without this, people still can't use the function
+  
+ 
+Here is what we will put in our .R file:
+
+```{r}
+#' Function for getting data about a single pokemon
+#' @param name name of the pokemon we want information about
+#' @examples pokeDex("Charmander")
+#' @examples pokeDex("Litwick")
+#' @return None
+#' @export
+pokeDex<-function(name){
+  print(head(pokemon_data)) #this will get changed later to do what the function is supposed to do
+
+}
+```
+
+NOTE: spacing here is VERY IMPORTANT. You can't have any spaces before the \#s, there can only be one empty space after the ', and your function definition should come directly after your @export line.
+
+Once you put the comments in, you need to use devtools or roxygen to actually build the documentation
+  - one way to do it: Ctrl + shit + d
+     (same as using Build --> document )
+     
+This will create your man folder in your package with your documentation for each of your functions. 
+     
+Once you build the documentation, build and install the package, then try to run the function again.
+
+Also, now that we have documentation, we can do things like this:
+
+```{r}
+example(pokeDex)
+?pokeDex
+```
+
+Way to go! You now have a package with data and functions!
+      
